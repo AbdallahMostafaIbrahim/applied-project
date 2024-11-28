@@ -24,8 +24,3 @@ public:
 
     void undo(); // Using Stack
 };
-
-int main()
-{
-    SudokuBoard s;
-}
