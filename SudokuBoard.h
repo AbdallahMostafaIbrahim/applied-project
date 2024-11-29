@@ -9,10 +9,12 @@ class SudokuBoard
 private:
     int board[9][9];
     int initialBoard[9][9];
+    int solvedBoard[9][9];
     bool isValidMove(int value, int r, int c);
     Stack<Move> lastMoves;
     std::pair<int, int> currentPosition;
     void handleInput();
+    bool validateMode = false;
 
 public:
     SudokuBoard();
@@ -21,13 +23,12 @@ public:
     void start();
 
     void generateInitialBoard();
-    bool solve(int row = 0, int col = 0, bool animate = false);
+    bool solve(int row, int col, int board[9][9], bool animate = false);
     void printBoard();
 
     bool insertValue(int value, int r, int c);
     bool removeValue(int r, int c);
     void getHint();
-    bool validateBoard(const std::vector<std::vector<int>>& board);
 
     void undo(); // Using Stack
     void remove();

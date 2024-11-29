@@ -68,11 +68,11 @@ void SudokuBoard::handleInput()
 	}
 	else if (ch == 's')
 	{
-		solve();
+		solve(0, 0, board, false);
 	}
 	else if (ch == 'a')
 	{
-		solve(0, 0, true);
+		solve(0, 0, board, true);
 	}
 	else if (ch == 'u')
 	{
@@ -81,6 +81,10 @@ void SudokuBoard::handleInput()
 	else if (ch == '\b')
 	{
 		remove();
+	}
+	else if (ch == 'v')
+	{
+		validateMode=!validateMode;
 	}
 }
 
@@ -91,6 +95,7 @@ SudokuBoard::~SudokuBoard()
 void SudokuBoard::start()
 {
 	generateInitialBoard();
+	solve(0, 0, solvedBoard, true);
 	while (true)
 	{
 		printBoard();
@@ -98,23 +103,23 @@ void SudokuBoard::start()
 	}
 }
 
-bool SudokuBoard::solve(int row, int col, bool animate)
+bool SudokuBoard::solve(int row, int col, int board[9][9], bool animate)
 {
 	if (animate)
 		printBoard();
 	if (row == 9)
 		return true;
 	if (col == 9)
-		return solve(row + 1, 0, animate);
+		return solve(row + 1, 0, board, animate);
 	if (board[row][col] != 0)
-		return solve(row, col + 1, animate);
+		return solve(row, col + 1, board, animate);
 	else
 		for (int i = 1; i <= 9; i++)
 		{
 			if (isValidMove(i, row, col))
 			{
 				board[row][col] = i;
-				if (solve(row, col + 1, animate))
+				if (solve(row, col + 1, board, animate))
 					return true;
 				board[row][col] = 0;
 			}
@@ -126,7 +131,7 @@ void SudokuBoard::printBoard()
 {
 	system("cls"); // Clear the console
 	std::ostringstream ss;
-	ss << "Use arrow keys to navigate, '1-9' to insert, backspace to remove, 's' to solve, 'a' to animate the solution, 'u' to undo, and  'q' to quit.\n";
+	ss << "Use arrow keys to navigate, '1-9' to insert, backspace to remove, 'v' to validate, 's' to solve, 'a' to animate the solution, 'u' to undo, and  'q' to quit.\n";
 	ss << "\n  ╔═══════════╦═══════════╦═══════════╗\n";
 	for (int i = 0; i < 9; i++)
 	{
@@ -138,7 +143,16 @@ void SudokuBoard::printBoard()
 			if (isHighlighted)
 				ss << YELLOW;
 			else if (isNew)
+			{
 				ss << BLUE;
+				if (validateMode)
+				{
+					if (board[i][j] != solvedBoard[i][j])
+						ss << RED;
+					else
+						ss << GREEN;
+				}
+			}
 			else
 				ss << RESET;
 			if (board[i][j] == 0)
@@ -180,50 +194,6 @@ void SudokuBoard::getHint()
 {
 }
 
-bool SudokuBoard::validateBoard(const std::vector<std::vector<int>>& board)
-{
-    // Check rows for duplicates
-    for (int i = 0; i < 9; ++i) {
-        std::unordered_set<int> rowSet;
-        for (int j = 0; j < 9; ++j) {
-            int num = board[i][j];
-            if (num != 0 && rowSet.find(num) != rowSet.end()) {
-                return false; // Duplicate in row
-            }
-            rowSet.insert(num);
-        }
-    }
-
-    // Check columns for duplicates
-    for (int i = 0; i < 9; ++i) {
-        std::unordered_set<int> colSet;
-        for (int j = 0; j < 9; ++j) {
-            int num = board[j][i];
-            if (num != 0 && colSet.find(num) != colSet.end()) {
-                return false; // Duplicate in column
-            }
-            colSet.insert(num);
-        }
-    }
-
-    // Check every 3x3 subMatrix
-    for (int boxRow = 0; boxRow < 3; ++boxRow) {
-        for (int boxCol = 0; boxCol < 3; ++boxCol) {
-            std::unordered_set<int> subBox;
-            for (int i = 0; i < 3; ++i) {
-                for (int j = 0; j < 3; ++j) {
-                    int value = board[boxRow * 3 + i][boxCol * 3 + j];
-                    if (value != 0 && subBox.find(value) != subBox.end()) {
-                        return false; // Duplicate in 3x3 box
-                    }
-                    subBox.insert(value);
-                }
-            }
-        }
-    }
-
-    return true; // Valid Sudoku
-}
 
 void SudokuBoard::undo()
 {
@@ -265,5 +235,6 @@ void SudokuBoard::generateInitialBoard()
 		{
 			this->board[i][j] = board[i][j];
 			this->initialBoard[i][j] = board[i][j];
+			this->solvedBoard[i][j] = board[i][j];
 		}
 }
