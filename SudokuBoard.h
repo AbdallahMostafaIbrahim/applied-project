@@ -21,13 +21,15 @@ public:
     void start();
 
     void generateInitialBoard();
+    void fillDiagonalBox(int row, int col);
+    void removeCells(int numCellsToRemove);
     bool solve(int row = 0, int col = 0, bool animate = false);
     void printBoard();
 
     bool insertValue(int value, int r, int c);
     bool removeValue(int r, int c);
     void getHint();
-    bool validateBoard(const std::vector<std::vector<int>>& board);
+    bool validateBoard(const std::vector<std::vector<int>> &board);
 
     void undo(); // Using Stack
     void remove();

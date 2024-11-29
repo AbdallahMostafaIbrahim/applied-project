@@ -5,7 +5,8 @@
 #include <sstream>
 #include <vector>
 #include <unordered_set>
-
+#include <cstdlib>
+#include <ctime>
 
 #define RESET "\033[0m"
 #define RED "\033[31m"
@@ -58,9 +59,9 @@ void SudokuBoard::handleInput()
 	{
 		bool isInitial = (initialBoard[currentPosition.first][currentPosition.second] != 0);
 		if (isInitial)
-			return; 
-		lastMoves.push({MoveType::Insert, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]});                                        // Can't change initial values
-		board[currentPosition.first][currentPosition.second] = ch - '0'; // Set number at current cell
+			return;
+		lastMoves.push({MoveType::Insert, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]}); // Can't change initial values
+		board[currentPosition.first][currentPosition.second] = ch - '0';																		 // Set number at current cell
 	}
 	else if (ch == 'q')
 	{
@@ -180,49 +181,60 @@ void SudokuBoard::getHint()
 {
 }
 
-bool SudokuBoard::validateBoard(const std::vector<std::vector<int>>& board)
+bool SudokuBoard::validateBoard(const std::vector<std::vector<int>> &board)
 {
-    // Check rows for duplicates
-    for (int i = 0; i < 9; ++i) {
-        std::unordered_set<int> rowSet;
-        for (int j = 0; j < 9; ++j) {
-            int num = board[i][j];
-            if (num != 0 && rowSet.find(num) != rowSet.end()) {
-                return false; // Duplicate in row
-            }
-            rowSet.insert(num);
-        }
-    }
+	// Check rows for duplicates
+	for (int i = 0; i < 9; ++i)
+	{
+		std::unordered_set<int> rowSet;
+		for (int j = 0; j < 9; ++j)
+		{
+			int num = board[i][j];
+			if (num != 0 && rowSet.find(num) != rowSet.end())
+			{
+				return false; // Duplicate in row
+			}
+			rowSet.insert(num);
+		}
+	}
 
-    // Check columns for duplicates
-    for (int i = 0; i < 9; ++i) {
-        std::unordered_set<int> colSet;
-        for (int j = 0; j < 9; ++j) {
-            int num = board[j][i];
-            if (num != 0 && colSet.find(num) != colSet.end()) {
-                return false; // Duplicate in column
-            }
-            colSet.insert(num);
-        }
-    }
+	// Check columns for duplicates
+	for (int i = 0; i < 9; ++i)
+	{
+		std::unordered_set<int> colSet;
+		for (int j = 0; j < 9; ++j)
+		{
+			int num = board[j][i];
+			if (num != 0 && colSet.find(num) != colSet.end())
+			{
+				return false; // Duplicate in column
+			}
+			colSet.insert(num);
+		}
+	}
 
-    // Check every 3x3 subMatrix
-    for (int boxRow = 0; boxRow < 3; ++boxRow) {
-        for (int boxCol = 0; boxCol < 3; ++boxCol) {
-            std::unordered_set<int> subBox;
-            for (int i = 0; i < 3; ++i) {
-                for (int j = 0; j < 3; ++j) {
-                    int value = board[boxRow * 3 + i][boxCol * 3 + j];
-                    if (value != 0 && subBox.find(value) != subBox.end()) {
-                        return false; // Duplicate in 3x3 box
-                    }
-                    subBox.insert(value);
-                }
-            }
-        }
-    }
+	// Check every 3x3 subMatrix
+	for (int boxRow = 0; boxRow < 3; ++boxRow)
+	{
+		for (int boxCol = 0; boxCol < 3; ++boxCol)
+		{
+			std::unordered_set<int> subBox;
+			for (int i = 0; i < 3; ++i)
+			{
+				for (int j = 0; j < 3; ++j)
+				{
+					int value = board[boxRow * 3 + i][boxCol * 3 + j];
+					if (value != 0 && subBox.find(value) != subBox.end())
+					{
+						return false; // Duplicate in 3x3 box
+					}
+					subBox.insert(value);
+				}
+			}
+		}
+	}
 
-    return true; // Valid Sudoku
+	return true; // Valid Sudoku
 }
 
 void SudokuBoard::undo()
@@ -231,12 +243,11 @@ void SudokuBoard::undo()
 		return;
 	Move temp = lastMoves.pop();
 	board[temp.row][temp.column] = temp.value;
-	
 }
 
 void SudokuBoard::remove()
 {
-	lastMoves.push({MoveType::Remove, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]});     
+	lastMoves.push({MoveType::Remove, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]});
 	board[currentPosition.first][currentPosition.second] = 0;
 }
 SudokuBoard::SudokuBoard() : lastMoves(100)
@@ -248,22 +259,54 @@ SudokuBoard::SudokuBoard() : lastMoves(100)
 
 void SudokuBoard::generateInitialBoard()
 {
-	// Sample Board
-	int board[9][9] = {
-		{5, 3, 0, 0, 7, 0, 0, 0, 0},
-		{6, 0, 0, 1, 9, 5, 0, 0, 0},
-		{0, 9, 8, 0, 0, 0, 0, 6, 0},
-		{8, 0, 0, 0, 6, 0, 0, 0, 3},
-		{4, 0, 0, 8, 0, 3, 0, 0, 1},
-		{7, 0, 0, 0, 2, 0, 0, 0, 6},
-		{0, 6, 0, 0, 0, 0, 2, 8, 0},
-		{0, 0, 0, 4, 1, 9, 0, 0, 5},
-		{0, 0, 0, 0, 8, 0, 0, 7, 9} };
+	srand(time(0)); // random number changes with time
+
+	for (int i = 0; i < 9; i += 3)
+	{
+		fillDiagonalBox(i, i); // We fill the diagonals first because they are independent of other boxes, so we select random numbers there and the rest to be assigned accordingly.
+	}
+
+	solve(0, 0, false);
+
+	removeCells(40); // 3amtan momken ne5ly dh for difficulty
 
 	for (int i = 0; i < 9; i++)
+	{
 		for (int j = 0; j < 9; j++)
 		{
-			this->board[i][j] = board[i][j];
-			this->initialBoard[i][j] = board[i][j];
+			initialBoard[i][j] = board[i][j];
 		}
+	}
+}
+
+void SudokuBoard::fillDiagonalBox(int row, int col)
+{
+	std::unordered_set<int> usedNumbers; // we use the sets to avoid duplicates.
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			int num;
+			do
+			{
+				num = rand() % 9 + 1;
+			} while (usedNumbers.find(num) != usedNumbers.end());
+			usedNumbers.insert(num);
+			board[row + i][col + j] = num;
+		}
+	}
+}
+
+void SudokuBoard::removeCells(int numCellsToRemove)
+{
+	while (numCellsToRemove > 0)
+	{
+		int row = rand() % 9;
+		int col = rand() % 9;
+		if (board[row][col] != 0)
+		{
+			board[row][col] = 0;
+			numCellsToRemove--;
+		}
+	}
 }
