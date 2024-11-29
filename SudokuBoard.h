@@ -24,8 +24,6 @@ public:
 
     void generateInitialBoard();
     bool solve(int row, int col, int board[9][9], bool animate = false);
-    void fillDiagonalBox(int row, int col);
-    void removeCells(int numCellsToRemove);
     void printBoard();
 
     bool insertValue(int value, int r, int c);

@@ -11,4 +11,6 @@ add_executable(Sudoko_Project
     Stack.h
     SudokuBoard.cpp
     SudokuBoard.h
-        Stack.cpp)
+        Stack.cpp
+        BoardGenerator.cpp
+        BoardGenerator.h)

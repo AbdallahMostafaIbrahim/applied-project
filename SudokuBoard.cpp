@@ -1,6 +1,7 @@
 #include "SudokuBoard.h"
+#include "BoardGenerator.h"
 #include <iostream>
-#include <iomanip> // For better formatting
+#include <iomanip>
 #include <conio.h>
 #include <sstream>
 #include <vector>
@@ -61,7 +62,7 @@ void SudokuBoard::handleInput()
 		if (isInitial)
 			return;
 		lastMoves.push({MoveType::Insert, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]}); // Can't change initial values
-		board[currentPosition.first][currentPosition.second] = ch - '0';																		 // Set number at current cell
+		board[currentPosition.first][currentPosition.second] = ch - '0';																																				 // Set number at current cell
 	}
 	else if (ch == 'q')
 	{
@@ -85,7 +86,7 @@ void SudokuBoard::handleInput()
 	}
 	else if (ch == 'v')
 	{
-		validateMode=!validateMode;
+		validateMode = !validateMode;
 	}
 }
 
@@ -195,7 +196,6 @@ void SudokuBoard::getHint()
 {
 }
 
-
 void SudokuBoard::undo()
 {
 	if (lastMoves.isEmpty())
@@ -218,56 +218,14 @@ SudokuBoard::SudokuBoard() : lastMoves(100)
 
 void SudokuBoard::generateInitialBoard()
 {
-	srand(time(0)); // random number changes with time
-
-	for (int i = 0; i < 9; i += 3)
-	{
-		fillDiagonalBox(i, i); // We fill the diagonals first because they are independent of other boxes, so we select random numbers there and the rest to be assigned accordingly.
-	}
-
-	solve(0, 0, board, false);
-
-	removeCells(40); // 3amtan momken ne5ly dh for difficulty
-
+	std::cout << "Generating board..." << std::endl;
+	BoardGenerator generator;
+	int **b = generator.getBoard();
 	for (int i = 0; i < 9; i++)
-	{
 		for (int j = 0; j < 9; j++)
 		{
-			this->board[i][j] = board[i][j];
-			this->initialBoard[i][j] = board[i][j];
-			this->solvedBoard[i][j] = board[i][j];
+			board[i][j] = b[i][j];
+			solvedBoard[i][j] = b[i][j];
+			initialBoard[i][j] = b[i][j];
 		}
-	}
-}
-
-void SudokuBoard::fillDiagonalBox(int row, int col)
-{
-	std::unordered_set<int> usedNumbers; // we use the sets to avoid duplicates.
-	for (int i = 0; i < 3; i++)
-	{
-		for (int j = 0; j < 3; j++)
-		{
-			int num;
-			do
-			{
-				num = rand() % 9 + 1;
-			} while (usedNumbers.find(num) != usedNumbers.end());
-			usedNumbers.insert(num);
-			board[row + i][col + j] = num;
-		}
-	}
-}
-
-void SudokuBoard::removeCells(int numCellsToRemove)
-{
-	while (numCellsToRemove > 0)
-	{
-		int row = rand() % 9;
-		int col = rand() % 9;
-		if (board[row][col] != 0)
-		{
-			board[row][col] = 0;
-			numCellsToRemove--;
-		}
-	}
 }
