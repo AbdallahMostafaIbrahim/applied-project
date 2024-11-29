@@ -19,6 +19,7 @@ Depending on your environment, run your make command (make or mingw32-make)
 make
 mingw32-make
 ```
+- Technically, you could build using CLion, Visual Studio or whatever, but when you run, make sure to run from a terminal, not the goofy CLion output screen.
 - This will create an executable file, probably named `Sudoko_Project`. Run it using
 ```bash
 # Windows
