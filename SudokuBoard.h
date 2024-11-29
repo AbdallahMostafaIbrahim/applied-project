@@ -29,4 +29,5 @@ public:
     void validate();
 
     void undo(); // Using Stack
+    void remove();
 };

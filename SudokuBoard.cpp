@@ -56,7 +56,8 @@ void SudokuBoard::handleInput()
 	{
 		bool isInitial = (initialBoard[currentPosition.first][currentPosition.second] != 0);
 		if (isInitial)
-			return;                                                      // Can't change initial values
+			return; 
+		lastMoves.push({MoveType::Insert, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]});                                        // Can't change initial values
 		board[currentPosition.first][currentPosition.second] = ch - '0'; // Set number at current cell
 	}
 	else if (ch == 'q')
@@ -70,6 +71,14 @@ void SudokuBoard::handleInput()
 	else if (ch == 'a')
 	{
 		solve(0, 0, true);
+	}
+	else if (ch == 'u')
+	{
+		undo();
+	}
+	else if (ch == '\b')
+	{
+		remove();
 	}
 }
 
@@ -115,7 +124,7 @@ void SudokuBoard::printBoard()
 {
 	system("cls"); // Clear the console
 	std::ostringstream ss;
-	ss << "Use arrow keys to navigate, '1-9' to insert, 's' to solve, 'a' to animate the solution, and  'q' to quit.\n";
+	ss << "Use arrow keys to navigate, '1-9' to insert, backspace to remove, 's' to solve, 'a' to animate the solution, 'u' to undo, and  'q' to quit.\n";
 	ss << "\n  ╔═══════════╦═══════════╦═══════════╗\n";
 	for (int i = 0; i < 9; i++)
 	{
@@ -175,8 +184,18 @@ void SudokuBoard::validate()
 
 void SudokuBoard::undo()
 {
+	if (lastMoves.isEmpty())
+		return;
+	Move temp = lastMoves.pop();
+	board[temp.row][temp.column] = temp.value;
+	
 }
 
+void SudokuBoard::remove()
+{
+	lastMoves.push({MoveType::Remove, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]});     
+	board[currentPosition.first][currentPosition.second] = 0;
+}
 SudokuBoard::SudokuBoard() : lastMoves(100)
 {
 	for (int i = 0; i < 9; i++)
