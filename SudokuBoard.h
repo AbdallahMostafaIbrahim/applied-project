@@ -10,7 +10,7 @@ private:
     int board[9][9];
     int initialBoard[9][9];
     int solvedBoard[9][9];
-    bool isValidMove(int value, int r, int c);
+    bool isValidMove(int value, int r, int c, int board[9][9]);
     Stack<Move> lastMoves;
     std::pair<int, int> currentPosition;
     void handleInput();

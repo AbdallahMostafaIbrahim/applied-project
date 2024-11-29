@@ -14,7 +14,7 @@
 #define BLUE "\033[34m"
 #define GREEN "\033[32m"
 
-bool SudokuBoard::isValidMove(int value, int r, int c)
+bool SudokuBoard::isValidMove(int value, int r, int c, int board[9][9])
 {
 	for (int i = 0; i < 9; i++)
 	{
@@ -96,7 +96,7 @@ SudokuBoard::~SudokuBoard()
 void SudokuBoard::start()
 {
 	generateInitialBoard();
-	solve(0, 0, solvedBoard, true);
+	solve(0, 0, solvedBoard, false);
 	while (true)
 	{
 		printBoard();
@@ -117,7 +117,7 @@ bool SudokuBoard::solve(int row, int col, int board[9][9], bool animate)
 	else
 		for (int i = 1; i <= 9; i++)
 		{
-			if (isValidMove(i, row, col))
+			if (isValidMove(i, row, col, board))
 			{
 				board[row][col] = i;
 				if (solve(row, col + 1, board, animate))
