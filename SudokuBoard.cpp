@@ -5,7 +5,8 @@
 #include <sstream>
 #include <vector>
 #include <unordered_set>
-
+#include <cstdlib>
+#include <ctime>
 
 #define RESET "\033[0m"
 #define RED "\033[31m"
@@ -58,9 +59,9 @@ void SudokuBoard::handleInput()
 	{
 		bool isInitial = (initialBoard[currentPosition.first][currentPosition.second] != 0);
 		if (isInitial)
-			return; 
-		lastMoves.push({MoveType::Insert, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]});                                        // Can't change initial values
-		board[currentPosition.first][currentPosition.second] = ch - '0'; // Set number at current cell
+			return;
+		lastMoves.push({MoveType::Insert, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]}); // Can't change initial values
+		board[currentPosition.first][currentPosition.second] = ch - '0';																		 // Set number at current cell
 	}
 	else if (ch == 'q')
 	{
@@ -201,12 +202,11 @@ void SudokuBoard::undo()
 		return;
 	Move temp = lastMoves.pop();
 	board[temp.row][temp.column] = temp.value;
-	
 }
 
 void SudokuBoard::remove()
 {
-	lastMoves.push({MoveType::Remove, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]});     
+	lastMoves.push({MoveType::Remove, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]});
 	board[currentPosition.first][currentPosition.second] = 0;
 }
 SudokuBoard::SudokuBoard() : lastMoves(100)
@@ -218,23 +218,56 @@ SudokuBoard::SudokuBoard() : lastMoves(100)
 
 void SudokuBoard::generateInitialBoard()
 {
-	// Sample Board
-	int board[9][9] = {
-		{5, 3, 0, 0, 7, 0, 0, 0, 0},
-		{6, 0, 0, 1, 9, 5, 0, 0, 0},
-		{0, 9, 8, 0, 0, 0, 0, 6, 0},
-		{8, 0, 0, 0, 6, 0, 0, 0, 3},
-		{4, 0, 0, 8, 0, 3, 0, 0, 1},
-		{7, 0, 0, 0, 2, 0, 0, 0, 6},
-		{0, 6, 0, 0, 0, 0, 2, 8, 0},
-		{0, 0, 0, 4, 1, 9, 0, 0, 5},
-		{0, 0, 0, 0, 8, 0, 0, 7, 9} };
+	srand(time(0)); // random number changes with time
+
+	for (int i = 0; i < 9; i += 3)
+	{
+		fillDiagonalBox(i, i); // We fill the diagonals first because they are independent of other boxes, so we select random numbers there and the rest to be assigned accordingly.
+	}
+
+	solve(0, 0, board, false);
+
+	removeCells(40); // 3amtan momken ne5ly dh for difficulty
 
 	for (int i = 0; i < 9; i++)
+	{
 		for (int j = 0; j < 9; j++)
 		{
 			this->board[i][j] = board[i][j];
 			this->initialBoard[i][j] = board[i][j];
 			this->solvedBoard[i][j] = board[i][j];
 		}
+	}
+}
+
+void SudokuBoard::fillDiagonalBox(int row, int col)
+{
+	std::unordered_set<int> usedNumbers; // we use the sets to avoid duplicates.
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			int num;
+			do
+			{
+				num = rand() % 9 + 1;
+			} while (usedNumbers.find(num) != usedNumbers.end());
+			usedNumbers.insert(num);
+			board[row + i][col + j] = num;
+		}
+	}
+}
+
+void SudokuBoard::removeCells(int numCellsToRemove)
+{
+	while (numCellsToRemove > 0)
+	{
+		int row = rand() % 9;
+		int col = rand() % 9;
+		if (board[row][col] != 0)
+		{
+			board[row][col] = 0;
+			numCellsToRemove--;
+		}
+	}
 }
