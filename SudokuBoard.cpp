@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <cstdlib>
 #include <ctime>
+#include <random>
 
 #define RESET "\033[0m"
 #define RED "\033[31m"
@@ -62,7 +63,7 @@ void SudokuBoard::handleInput()
 		if (isInitial)
 			return;
 		lastMoves.push({MoveType::Insert, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]}); // Can't change initial values
-		board[currentPosition.first][currentPosition.second] = ch - '0';																																				 // Set number at current cell
+		board[currentPosition.first][currentPosition.second] = ch - '0';																		 // Set number at current cell
 	}
 	else if (ch == 'q')
 	{
@@ -87,6 +88,10 @@ void SudokuBoard::handleInput()
 	else if (ch == 'v')
 	{
 		validateMode = !validateMode;
+	}
+	else if (ch == 'h')
+	{
+		getHint();
 	}
 }
 
@@ -133,7 +138,7 @@ void SudokuBoard::printBoard()
 {
 	system("cls"); // Clear the console
 	std::ostringstream ss;
-	ss << "Use arrow keys to navigate, '1-9' to insert, backspace to remove, 'v' to validate, 's' to solve, 'a' to animate the solution, 'u' to undo, and  'q' to quit.\n";
+	ss << "Use arrow keys to navigate, '1-9' to insert, backspace to remove, 'v' to validate, 'h' to get a hint, 's' to solve, 'a' to animate the solution, 'u' to undo, and  'q' to quit.\n";
 	ss << "\n  ╔═══════════╦═══════════╦═══════════╗\n";
 	for (int i = 0; i < 9; i++)
 	{
@@ -194,6 +199,28 @@ bool SudokuBoard::removeValue(int r, int c)
 
 void SudokuBoard::getHint()
 {
+	srand(time(0));
+	int random = rand() % 9;
+	int random2 = rand() % 9;
+	bool empty = false;
+	for (int i = 0; i < 9; i++)
+	{
+		for (int j = 0; j < 9; j++)
+		{
+			if (board[i][j] == 0)
+				empty = true;
+		}
+	}
+	if (!empty)
+		return;
+	do
+	{
+		random = rand() % 9;
+		random2 = rand() % 9;
+
+	} while (board[random][random2] != 0);
+
+	board[random][random2] = solvedBoard[random][random2];
 }
 
 void SudokuBoard::undo()
