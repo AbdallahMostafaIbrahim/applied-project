@@ -1,0 +1,10 @@
+# ninja log v6
+18	461	7545879505493786	CMakeFiles/Sudoko_Project.dir/Stack.cpp.obj	5a54adca7a8d9c13
+11	522	7545879505423114	CMakeFiles/Sudoko_Project.dir/SudokuBoard.cpp.obj	d10d06201e898d15
+3	1625	7545879505341849	CMakeFiles/Sudoko_Project.dir/main.cpp.obj	5fbc898ac7ebc301
+1627	1894	7545879521587945	Sudoko_Project.exe	2ba759a6535ece3b
+8	456	7545881546834188	CMakeFiles/Sudoko_Project.dir/SudokuBoard.cpp.obj	d10d06201e898d15
+457	597	7545881551319316	Sudoko_Project.exe	2ba759a6535ece3b
+12	711	7545893987758671	CMakeFiles/Sudoko_Project.dir/SudokuBoard.cpp.obj	d10d06201e898d15
+5	1709	7545893987695834	CMakeFiles/Sudoko_Project.dir/main.cpp.obj	5fbc898ac7ebc301
+1709	1846	7545894004732587	Sudoko_Project.exe	2ba759a6535ece3b

@@ -3,6 +3,8 @@
 #include <iomanip> // For better formatting
 #include <conio.h>
 #include <sstream>
+#include <vector>
+#include <unordered_set>
 
 
 #define RESET "\033[0m"
@@ -178,8 +180,49 @@ void SudokuBoard::getHint()
 {
 }
 
-void SudokuBoard::validate()
+bool SudokuBoard::validateBoard(const std::vector<std::vector<int>>& board)
 {
+    // Check rows for duplicates
+    for (int i = 0; i < 9; ++i) {
+        std::unordered_set<int> rowSet;
+        for (int j = 0; j < 9; ++j) {
+            int num = board[i][j];
+            if (num != 0 && rowSet.find(num) != rowSet.end()) {
+                return false; // Duplicate in row
+            }
+            rowSet.insert(num);
+        }
+    }
+
+    // Check columns for duplicates
+    for (int i = 0; i < 9; ++i) {
+        std::unordered_set<int> colSet;
+        for (int j = 0; j < 9; ++j) {
+            int num = board[j][i];
+            if (num != 0 && colSet.find(num) != colSet.end()) {
+                return false; // Duplicate in column
+            }
+            colSet.insert(num);
+        }
+    }
+
+    // Check every 3x3 subMatrix
+    for (int boxRow = 0; boxRow < 3; ++boxRow) {
+        for (int boxCol = 0; boxCol < 3; ++boxCol) {
+            std::unordered_set<int> subBox;
+            for (int i = 0; i < 3; ++i) {
+                for (int j = 0; j < 3; ++j) {
+                    int value = board[boxRow * 3 + i][boxCol * 3 + j];
+                    if (value != 0 && subBox.find(value) != subBox.end()) {
+                        return false; // Duplicate in 3x3 box
+                    }
+                    subBox.insert(value);
+                }
+            }
+        }
+    }
+
+    return true; // Valid Sudoku
 }
 
 void SudokuBoard::undo()

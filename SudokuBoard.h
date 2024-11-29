@@ -1,5 +1,6 @@
 #include "Stack.h"
 #include "Move.h"
+#include <vector>
 
 #pragma once
 
@@ -26,7 +27,7 @@ public:
     bool insertValue(int value, int r, int c);
     bool removeValue(int r, int c);
     void getHint();
-    void validate();
+    bool validateBoard(const std::vector<std::vector<int>>& board);
 
     void undo(); // Using Stack
     void remove();
