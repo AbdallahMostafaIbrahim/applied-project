@@ -15,9 +15,11 @@ private:
   int genRandNum(int maxLimit);
   bool goToNextUnassignedCell(int &row, int &col);
   bool isValidMove(int row, int col, int num);
+  int maxCellsToRemove = 0;
+  int cellsToRemove;
 
 public:
-  BoardGenerator();
+  BoardGenerator(int cellsToRemove);
   int **getBoard();
   int **getSolvedBoard();
 };

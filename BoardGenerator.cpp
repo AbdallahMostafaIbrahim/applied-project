@@ -74,8 +74,16 @@ bool BoardGenerator::solve()
 
 void BoardGenerator::removeCells()
 {
+  maxCellsToRemove = 0;
   for (int i = 0; i < 81; i++)
   {
+    // We can't remove more than 64 cells
+    if (maxCellsToRemove >= 81 - 17)
+      break;
+
+    if (maxCellsToRemove >= cellsToRemove)
+      break;
+
     int row = (randomPositions[i]) / 9;
     int col = (randomPositions[i]) % 9;
 
@@ -92,6 +100,10 @@ void BoardGenerator::removeCells()
     if (numberOfSolutions > 1)
     {
       board[row][col] = temp;
+    }
+    else
+    {
+      maxCellsToRemove++;
     }
   }
 }
@@ -168,35 +180,38 @@ bool BoardGenerator::isValidMove(int r, int c, int num)
   return true;
 }
 
-BoardGenerator::BoardGenerator()
+BoardGenerator::BoardGenerator(int cellsToRemove) : cellsToRemove(cellsToRemove)
 {
-  // Initialize the random numbers array
-  for (int i = 0; i < 9; i++)
+  do
   {
-    randomNumbers[i] = i + 1;
-  }
-
-  // Initialize the random positions array
-  for (int i = 0; i < 81; i++)
-  {
-    randomPositions[i] = i;
-  }
-
-  std::random_device rd;
-  std::default_random_engine rng(rd());
-  std::shuffle(randomPositions, randomPositions + 81, rng);
-
-  // Initialize the board
-  for (int i = 0; i < 9; i++)
-  {
-    for (int j = 0; j < 9; j++)
+    // Initialize the random numbers array
+    for (int i = 0; i < 9; i++)
     {
-      board[i][j] = 0;
+      randomNumbers[i] = i + 1;
     }
-  }
 
-  seed();
-  removeCells();
+    // Initialize the random positions array
+    for (int i = 0; i < 81; i++)
+    {
+      randomPositions[i] = i;
+    }
+
+    std::random_device rd;
+    std::default_random_engine rng(rd());
+    std::shuffle(randomPositions, randomPositions + 81, rng);
+
+    // Initialize the board
+    for (int i = 0; i < 9; i++)
+    {
+      for (int j = 0; j < 9; j++)
+      {
+        board[i][j] = 0;
+      }
+    }
+
+    seed();
+    removeCells();
+  } while (maxCellsToRemove < cellsToRemove);
 }
 
 // TODO: Fix this shit

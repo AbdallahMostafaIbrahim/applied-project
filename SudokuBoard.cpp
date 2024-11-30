@@ -15,6 +15,11 @@
 #define BLUE "\033[34m"
 #define GREEN "\033[32m"
 
+#define KEY_UP 72
+#define KEY_DOWN 80
+#define KEY_LEFT 75
+#define KEY_RIGHT 77
+
 bool SudokuBoard::isValidMove(int value, int r, int c, int board[9][9])
 {
 	for (int i = 0; i < 9; i++)
@@ -37,56 +42,48 @@ bool SudokuBoard::isValidMove(int value, int r, int c, int board[9][9])
 
 void SudokuBoard::handleInput()
 {
-	char ch = _getch();
-	if (ch == -32) // This is for windows, we will see how to make it on other operating systems
+	int ch = getch();
+	switch (ch)
 	{
-		switch (_getch())
-		{
-		case 72:
-			currentPosition.first = (currentPosition.first == 0) ? 8 : currentPosition.first - 1;
-			break; // Up
-		case 80:
-			currentPosition.first = (currentPosition.first == 8) ? 0 : currentPosition.first + 1;
-			break; // Down
-		case 75:
-			currentPosition.second = (currentPosition.second == 0) ? 8 : currentPosition.second - 1;
-			break; // Left
-		case 77:
-			currentPosition.second = (currentPosition.second == 8) ? 0 : currentPosition.second + 1;
-			break; // Right
-		}
+	case KEY_UP:
+		currentPosition.first = (currentPosition.first == 0) ? 8 : currentPosition.first - 1;
+		break; // Up
+	case KEY_DOWN:
+		currentPosition.first = (currentPosition.first == 8) ? 0 : currentPosition.first + 1;
+		break; // Down
+	case KEY_LEFT:
+		currentPosition.second = (currentPosition.second == 0) ? 8 : currentPosition.second - 1;
+		break; // Left
+	case KEY_RIGHT:
+		currentPosition.second = (currentPosition.second == 8) ? 0 : currentPosition.second + 1;
+		break; // Right
+	case 'q':
+		exit(0);
+		break;
+	case 's':
+		solve(0, 0, board, false);
+		break;
+	case 'a':
+		solve(0, 0, board, true);
+		break;
+	case 'u':
+		undo();
+		break;
+	case '\b':
+	case 'x':
+		remove();
+		break;
+	case 'v':
+		validateMode = !validateMode;
+		break;
 	}
-	else if (ch >= '1' && ch <= '9')
+	if (ch >= '1' && ch <= '9')
 	{
 		bool isInitial = (initialBoard[currentPosition.first][currentPosition.second] != 0);
 		if (isInitial)
 			return;
 		lastMoves.push({MoveType::Insert, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]}); // Can't change initial values
 		board[currentPosition.first][currentPosition.second] = ch - '0';																																				 // Set number at current cell
-	}
-	else if (ch == 'q')
-	{
-		exit(0);
-	}
-	else if (ch == 's')
-	{
-		solve(0, 0, board, false);
-	}
-	else if (ch == 'a')
-	{
-		solve(0, 0, board, true);
-	}
-	else if (ch == 'u')
-	{
-		undo();
-	}
-	else if (ch == '\b')
-	{
-		remove();
-	}
-	else if (ch == 'v')
-	{
-		validateMode = !validateMode;
 	}
 }
 
@@ -219,7 +216,7 @@ SudokuBoard::SudokuBoard() : lastMoves(100)
 void SudokuBoard::generateInitialBoard()
 {
 	std::cout << "Generating board..." << std::endl;
-	BoardGenerator generator;
+	BoardGenerator generator(50);
 	int **b = generator.getBoard();
 	for (int i = 0; i < 9; i++)
 		for (int j = 0; j < 9; j++)
