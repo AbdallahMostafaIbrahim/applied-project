@@ -14,6 +14,7 @@ private:
     Stack<Move> lastMoves;
     std::pair<int, int> currentPosition;
     void handleInput();
+    void handleChar(char c);
     bool validateMode = false;
 
 public:

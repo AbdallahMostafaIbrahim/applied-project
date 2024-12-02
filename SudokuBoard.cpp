@@ -2,7 +2,6 @@
 #include "BoardGenerator.h"
 #include <iostream>
 #include <iomanip>
-#include <termios.h>
 #include <unistd.h>
 #include <sstream>
 #include <vector>
@@ -11,8 +10,20 @@
 #include <ctime>
 #include <random>
 
-char getch()
+// This part is for handling input on Windows and Unix-based systems
+#ifdef _WIN32
+#include <conio.h> // For Windows
+#else
+#include <termios.h>
+#include <unistd.h>
+#endif
+
+// This function is for handling input on Unix-based systems
+char mygetch()
 {
+#ifdef _WIN32
+	return getch();
+#else
 	struct termios oldt, newt;
 	char ch;
 
@@ -25,6 +36,7 @@ char getch()
 
 	tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // Restore terminal attributes
 	return ch;
+#endif
 }
 
 #define RESET "\033[0m"
@@ -33,11 +45,29 @@ char getch()
 #define BLUE "\033[34m"
 #define GREEN "\033[32m"
 
+#ifdef _WIN32
+#define CLEAR "cls"
+#else
+#define CLEAR "clear"
+#endif
+
+// Arrow keys
+#ifdef _WIN32
+#define KEY_UP 72
+#define KEY_DOWN 80
+#define KEY_LEFT 75
+#define KEY_RIGHT 77
+#define BACKSPACE '\b'
+#define ARROW -32
+#else
 #define KEY_UP 65
 #define KEY_DOWN 66
 #define KEY_LEFT 68
 #define KEY_RIGHT 67
 #define BACKSPACE 127
+#define ARROW 27
+#define BRACKET 91
+#endif
 
 bool SudokuBoard::isValidMove(int value, int r, int c, int board[9][9])
 {
@@ -59,69 +89,84 @@ bool SudokuBoard::isValidMove(int value, int r, int c, int board[9][9])
 	return true;
 }
 
+void SudokuBoard::handleChar(char c)
+{
+	switch (c)
+	{
+	case KEY_UP:
+		currentPosition.first = (currentPosition.first == 0) ? 8 : currentPosition.first - 1;
+		break; // Up
+	case KEY_DOWN:
+		currentPosition.first = (currentPosition.first == 8) ? 0 : currentPosition.first + 1;
+		break; // Down
+	case KEY_LEFT:
+		currentPosition.second = (currentPosition.second == 0) ? 8 : currentPosition.second - 1;
+		break; // Left
+	case KEY_RIGHT:
+		currentPosition.second = (currentPosition.second == 8) ? 0 : currentPosition.second + 1;
+		break; // Right
+	case 'q':
+		exit(0);
+		break;
+	case 's':
+		solve(0, 0, board, false);
+		break;
+	case 'a':
+		solve(0, 0, board, true);
+		break;
+	case 'u':
+		undo();
+		break;
+	case BACKSPACE:
+	case 'x':
+		remove();
+		break;
+	case 'v':
+		validateMode = !validateMode;
+		break;
+	case 'h':
+		getHint();
+		break;
+	}
+	if (c >= '1' && c <= '9')
+	{
+		bool isInitial = (initialBoard[currentPosition.first][currentPosition.second] != 0);
+		if (isInitial)
+			return;
+		lastMoves.push({MoveType::Insert, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]}); // Can't change initial values
+		board[currentPosition.first][currentPosition.second] = c - '0';																																					 // Set number at current cell
+	}
+}
+
 void SudokuBoard::handleInput()
 {
-	int ch = getch();
+	int ch = mygetch();
 
-	if (ch == 27)
+#ifdef _WIN32
+	if (ch == ARROW) // Arrow key prefix on Windows
 	{
-		ch = getch();
-		if (ch == 91)
+		ch = mygetch();
+		handleChar(ch);
+	}
+	else
+	{
+		handleChar(ch);
+	}
+#else
+	if (ch == ARROW)
+	{
+		ch = mygetch();
+		if (ch == BRACKET)
 		{
-			ch = getch();
-			switch (ch)
-			{
-			case KEY_UP:
-				currentPosition.first = (currentPosition.first == 0) ? 8 : currentPosition.first - 1;
-				break; // Up
-			case KEY_DOWN:
-				currentPosition.first = (currentPosition.first == 8) ? 0 : currentPosition.first + 1;
-				break; // Down
-			case KEY_LEFT:
-				currentPosition.second = (currentPosition.second == 0) ? 8 : currentPosition.second - 1;
-				break; // Left
-			case KEY_RIGHT:
-				currentPosition.second = (currentPosition.second == 8) ? 0 : currentPosition.second + 1;
-				break; // Right
-			}
+			ch = mygetch();
+			handleChar(ch);
 		}
 	}
 	else
 	{
-		switch (ch)
-		{
-		case 'q':
-			exit(0);
-			break;
-		case 's':
-			solve(0, 0, board, false);
-			break;
-		case 'a':
-			solve(0, 0, board, true);
-			break;
-		case 'u':
-			undo();
-			break;
-		case BACKSPACE:
-		case 'x':
-			remove();
-			break;
-		case 'v':
-			validateMode = !validateMode;
-			break;
-		case 'h':
-			getHint();
-			break;
-		}
-		if (ch >= '1' && ch <= '9')
-		{
-			bool isInitial = (initialBoard[currentPosition.first][currentPosition.second] != 0);
-			if (isInitial)
-				return;
-			lastMoves.push({MoveType::Insert, currentPosition.first, currentPosition.second, board[currentPosition.first][currentPosition.second]}); // Can't change initial values
-			board[currentPosition.first][currentPosition.second] = ch - '0';																		 // Set number at current cell
-		}
+		handleChar(ch);
 	}
+#endif
 }
 
 SudokuBoard::~SudokuBoard()
@@ -165,11 +210,7 @@ bool SudokuBoard::solve(int row, int col, int board[9][9], bool animate)
 
 void SudokuBoard::printBoard()
 {
-#ifdef _WIN32
-	system("cls"); // Clear the console on Windows
-#else
-	system("clear"); // Clear the console on Unix-based systems
-#endif
+	system(CLEAR); // Clear the screen
 	std::ostringstream ss;
 	ss << "Use arrow keys to navigate, '1-9' to insert, backspace to remove, 'v' to validate, 'h' to get a hint, 's' to solve, 'a' to animate the solution, 'u' to undo, and  'q' to quit.\n";
 	ss << "\n  ╔═══════════╦═══════════╦═══════════╗\n";
