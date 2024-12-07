@@ -158,8 +158,20 @@ void SudokuBoard::handleChar(char c)
 		break;
 	}
 	case 'a':
+	{
+		if (isSolved())
+			break;
+		// Set board to initial state
+		for (int i = 0; i < 9; i++)
+			for (int j = 0; j < 9; j++)
+				board[i][j] = initialBoard[i][j];
+
+		auto start = std::chrono::high_resolution_clock::now();
 		solve(0, 0, board, true);
-		break;
+		auto stop = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+		timeTakentoSolveinMicroSeconds = duration.count();
+	}
 	case 'u':
 		undo();
 		break;
