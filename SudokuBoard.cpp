@@ -2,7 +2,6 @@
 #include "BoardGenerator.h"
 #include <iostream>
 #include <iomanip>
-#include <unistd.h>
 #include <sstream>
 #include <vector>
 #include <cstdlib>
@@ -42,7 +41,7 @@ char mygetch()
 #define RESET "\033[0m"
 #define RED "\033[31m"
 #define YELLOW "\033[33m"
-#define BLUE "\033[34m"
+#define BLUE "\033[96m"
 #define GREEN "\033[32m"
 
 #ifdef _WIN32
