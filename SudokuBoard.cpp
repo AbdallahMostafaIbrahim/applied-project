@@ -5,10 +5,10 @@
 #include <unistd.h>
 #include <sstream>
 #include <vector>
-#include <unordered_set>
 #include <cstdlib>
 #include <ctime>
 #include <random>
+#include <chrono>
 
 // This part is for handling input on Windows and Unix-based systems
 #ifdef _WIN32
@@ -89,8 +89,41 @@ bool SudokuBoard::isValidMove(int value, int r, int c, int board[9][9])
 	return true;
 }
 
+bool SudokuBoard::isSolved()
+{
+	for (int i = 0; i < 9; i++)
+		for (int j = 0; j < 9; j++)
+			if (board[i][j] != solvedBoard[i][j])
+				return false;
+	return true;
+}
+
 void SudokuBoard::handleChar(char c)
 {
+	if (difficulty == NotSet)
+	{
+		switch (c)
+		{
+		case '1':
+			difficulty = Easy;
+			break;
+		case '2':
+			difficulty = Medium;
+			break;
+		case '3':
+			difficulty = Hard;
+			break;
+		case 'q':
+			exit(0);
+			break;
+		}
+		generateInitialBoard();
+		std::cout << "Board generated!" << std::endl;
+		std::cout << "Attempting to solve it for you..." << std::endl;
+		solve(0, 0, solvedBoard, false);
+		return;
+	}
+
 	switch (c)
 	{
 	case KEY_UP:
@@ -109,8 +142,21 @@ void SudokuBoard::handleChar(char c)
 		exit(0);
 		break;
 	case 's':
+	{
+		if (isSolved())
+			break;
+		// Set board to initial state
+		for (int i = 0; i < 9; i++)
+			for (int j = 0; j < 9; j++)
+				board[i][j] = initialBoard[i][j];
+
+		auto start = std::chrono::high_resolution_clock::now();
 		solve(0, 0, board, false);
+		auto stop = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+		timeTakentoSolveinMicroSeconds = duration.count();
 		break;
+	}
 	case 'a':
 		solve(0, 0, board, true);
 		break;
@@ -126,6 +172,11 @@ void SudokuBoard::handleChar(char c)
 		break;
 	case 'h':
 		getHint();
+		break;
+	case 'c':
+		difficulty = NotSet;
+		timeTakentoSolveinMicroSeconds = -1;
+		currentPosition = {0, 0};
 		break;
 	}
 	if (c >= '1' && c <= '9')
@@ -146,12 +197,8 @@ void SudokuBoard::handleInput()
 	if (ch == ARROW) // Arrow key prefix on Windows
 	{
 		ch = mygetch();
-		handleChar(ch);
 	}
-	else
-	{
-		handleChar(ch);
-	}
+	handleChar(ch);
 #else
 	if (ch == ARROW)
 	{
@@ -159,13 +206,9 @@ void SudokuBoard::handleInput()
 		if (ch == BRACKET)
 		{
 			ch = mygetch();
-			handleChar(ch);
 		}
 	}
-	else
-	{
-		handleChar(ch);
-	}
+	handleChar(ch);
 #endif
 }
 
@@ -175,8 +218,6 @@ SudokuBoard::~SudokuBoard()
 
 void SudokuBoard::start()
 {
-	generateInitialBoard();
-	solve(0, 0, solvedBoard, false);
 	while (true)
 	{
 		printBoard();
@@ -211,8 +252,40 @@ bool SudokuBoard::solve(int row, int col, int board[9][9], bool animate)
 void SudokuBoard::printBoard()
 {
 	system(CLEAR); // Clear the screen
+
+	if (difficulty == NotSet)
+	{
+		std::cout << R"(
+		
+ ___                                     __                         
+  |    _   ._  ._ _   o  ._    _.  |    (_    _    _|       |       
+  |   (/_  |   | | |  |  | |  (_|  |    __)  (_)  (_|  |_|  |<  |_| 
+                                                                    
+		
+		)" << std::endl;
+		std::cout << "Please select difficulty level" << std::endl;
+
+		std::cout << "1. Easy" << std::endl;
+		std::cout << "2. Medium" << std::endl;
+		std::cout << "3. Hard" << std::endl;
+		std::cout << "Q. Quit" << std::endl;
+
+		return;
+	}
+
 	std::ostringstream ss;
 	ss << "Use arrow keys to navigate, '1-9' to insert, backspace to remove, 'v' to validate, 'h' to get a hint, 's' to solve, 'a' to animate the solution, 'u' to undo, and  'q' to quit.\n";
+	if (validateMode)
+		ss << "Validation mode is on\n";
+	if (timeTakentoSolveinMicroSeconds > -1)
+	{
+		ss << BLUE << "Time taken to solve: " << timeTakentoSolveinMicroSeconds << " microseconds\n";
+		ss << YELLOW << "Nice try. We solved it for you. Press 'c' to go the menu and play again.\n"
+			 << RESET;
+	}
+	else if (isSolved())
+		ss << GREEN << "You win! Press 'c' to go the menu and play again.\n"
+			 << RESET;
 	ss << "\n  ╔═══════════╦═══════════╦═══════════╗\n";
 	for (int i = 0; i < 9; i++)
 	{
@@ -312,6 +385,9 @@ void SudokuBoard::remove()
 }
 SudokuBoard::SudokuBoard() : lastMoves(100)
 {
+	difficulty = NotSet;
+	timeTakentoSolveinMicroSeconds = -1;
+	currentPosition = {0, 0};
 	for (int i = 0; i < 9; i++)
 		for (int j = 0; j < 9; j++)
 			board[i][j] = 0;
@@ -320,8 +396,25 @@ SudokuBoard::SudokuBoard() : lastMoves(100)
 void SudokuBoard::generateInitialBoard()
 {
 	std::cout << "Generating board..." << std::endl;
-	BoardGenerator generator(50);
+
+	int cellsToRemove = 0;
+	switch (difficulty)
+	{
+	case Easy:
+		cellsToRemove = 30;
+		break;
+	case Medium:
+		cellsToRemove = 40;
+		break;
+	case Hard:
+		cellsToRemove = 50;
+		break;
+	}
+
+	BoardGenerator generator(cellsToRemove);
+
 	int **b = generator.getBoard();
+
 	for (int i = 0; i < 9; i++)
 		for (int j = 0; j < 9; j++)
 		{
